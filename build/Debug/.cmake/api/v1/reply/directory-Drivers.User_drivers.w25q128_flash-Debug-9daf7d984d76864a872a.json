@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "Drivers/User_drivers/w25q128_flash",
+		"source" : "Drivers/User_drivers/w25q128_flash"
+	}
+}

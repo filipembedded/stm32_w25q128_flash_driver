@@ -1,0 +1,11 @@
+C:/Users/filip/Documents/Development/Winbond_flash/winbond_flash/build/Debug/CMakeFiles/winbond_flash.dir
+C:/Users/filip/Documents/Development/Winbond_flash/winbond_flash/build/Debug/CMakeFiles/edit_cache.dir
+C:/Users/filip/Documents/Development/Winbond_flash/winbond_flash/build/Debug/CMakeFiles/rebuild_cache.dir
+C:/Users/filip/Documents/Development/Winbond_flash/winbond_flash/build/Debug/cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir
+C:/Users/filip/Documents/Development/Winbond_flash/winbond_flash/build/Debug/cmake/stm32cubemx/CMakeFiles/edit_cache.dir
+C:/Users/filip/Documents/Development/Winbond_flash/winbond_flash/build/Debug/cmake/stm32cubemx/CMakeFiles/rebuild_cache.dir
+C:/Users/filip/Documents/Development/Winbond_flash/winbond_flash/build/Debug/Drivers/User_drivers/CMakeFiles/edit_cache.dir
+C:/Users/filip/Documents/Development/Winbond_flash/winbond_flash/build/Debug/Drivers/User_drivers/CMakeFiles/rebuild_cache.dir
+C:/Users/filip/Documents/Development/Winbond_flash/winbond_flash/build/Debug/Drivers/User_drivers/w25q128_flash/CMakeFiles/w25q128.dir
+C:/Users/filip/Documents/Development/Winbond_flash/winbond_flash/build/Debug/Drivers/User_drivers/w25q128_flash/CMakeFiles/edit_cache.dir
+C:/Users/filip/Documents/Development/Winbond_flash/winbond_flash/build/Debug/Drivers/User_drivers/w25q128_flash/CMakeFiles/rebuild_cache.dir
