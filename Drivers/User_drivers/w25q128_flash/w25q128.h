@@ -61,7 +61,7 @@ typedef enum {
 } W25Q128_ID_TypeDef;
 
 typedef struct {
-    SPI_HandleTypeDef hspi;
+    SPI_HandleTypeDef *hspi;
     GPIO_TypeDef *cs_port;
     uint16_t cs_pin;
 } W25Q128_TypeDef;
@@ -80,4 +80,16 @@ void W25Q128_Reset(W25Q128_TypeDef *w25q128);
 
 uint32_t W25Q128_ReadID(W25Q128_TypeDef *w25q128, W25Q128_ID_TypeDef id);
 
+W25Q128_StatusTypeDef W25Q128_Read(W25Q128_TypeDef *w25,
+                                    uint32_t start_page,
+                                    uint8_t offset,
+                                    uint32_t size,
+                                    uint8_t *r_data);
+
+
+W25Q128_StatusTypeDef W25Q128_FastRead(W25Q128_TypeDef *w25,
+                                        uint32_t start_page,
+                                        uint8_t offset,
+                                        uint32_t size,
+                                        uint8_t *r_data);
 #endif 
