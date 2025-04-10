@@ -4,7 +4,9 @@
 typedef enum {
     W25Q128_SUCCESS = 0,
     W25Q128_ERROR = 1,
-    W25Q128_BUSY = 2
+    W25Q128_READY = 2,
+    W25Q128_BUSY = 3,
+    W25Q128_ERROR_TIMEOUT = 4,
 } W25Q128_StatusTypeDef;
 
 typedef enum {
@@ -92,4 +94,17 @@ W25Q128_StatusTypeDef W25Q128_FastRead(W25Q128_TypeDef *w25,
                                         uint8_t offset,
                                         uint32_t size,
                                         uint8_t *r_data);
+
+W25Q128_StatusTypeDef W25Q128_WriteEnable(W25Q128_TypeDef *w25);
+
+W25Q128_StatusTypeDef W25Q128_WriteDisable(W25Q128_TypeDef *w25);
+
+W25Q128_StatusTypeDef W25Q128_EraseSector(W25Q128_TypeDef *w25, 
+                                                        uint16_t num_sector);
+
+uint8_t W25Q128_ReadStatusRegister(W25Q128_TypeDef *w25);
+
+W25Q128_StatusTypeDef W25Q128_CheckBUSY(W25Q128_TypeDef *w25);
+
+
 #endif 

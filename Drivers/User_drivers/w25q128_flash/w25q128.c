@@ -1,7 +1,8 @@
 #include "main.h"
 #include "w25q128.h"
 
-#define W25Q128_SPI_TIMEOUT 100
+#define W25Q128_SPI_TIMEOUT_MS 100
+#define W25Q128_RECOVERY_TIMEOUT_MS 500
 
 void W25Q128_ChipSelect(W25Q128_TypeDef *w25q128)
 {
@@ -39,7 +40,7 @@ void W25Q128_Reset(W25Q128_TypeDef *w25q128)
 
     W25Q128_ChipSelect(w25q128);
 
-    W25Q128_SPIWrite(w25q128, t_data, 2, W25Q128_SPI_TIMEOUT);
+    W25Q128_SPIWrite(w25q128, t_data, 2, W25Q128_SPI_TIMEOUT_MS);
 
     W25Q128_ChipDeselect(w25q128);
 
@@ -57,8 +58,8 @@ uint32_t W25Q128_ReadID(W25Q128_TypeDef *w25q128, W25Q128_ID_TypeDef id)
         case ID_JEDEC:
             t_data = INST_JEDEC_ID;
             W25Q128_ChipSelect(w25q128);
-            W25Q128_SPIWrite(w25q128, &t_data, 1, W25Q128_SPI_TIMEOUT);
-            W25Q128_SPIRead(w25q128, r_data, 3, W25Q128_SPI_TIMEOUT);
+            W25Q128_SPIWrite(w25q128, &t_data, 1, W25Q128_SPI_TIMEOUT_MS);
+            W25Q128_SPIRead(w25q128, r_data, 3, W25Q128_SPI_TIMEOUT_MS);
             W25Q128_ChipDeselect(w25q128);
 
             // MFN_ID : MEM_ID : CAPACITY_ID
@@ -86,8 +87,8 @@ W25Q128_StatusTypeDef W25Q128_Read(W25Q128_TypeDef *w25,
     t_data[3] = (mem_addr) & 0xFF;       // LSB of 24-bit memory address
 
     W25Q128_ChipSelect(w25);
-    W25Q128_SPIWrite(w25, t_data, sizeof(t_data), W25Q128_SPI_TIMEOUT);
-    W25Q128_SPIRead(w25, r_data, size, W25Q128_SPI_TIMEOUT);
+    W25Q128_SPIWrite(w25, t_data, sizeof(t_data), W25Q128_SPI_TIMEOUT_MS);
+    W25Q128_SPIRead(w25, r_data, size, W25Q128_SPI_TIMEOUT_MS);
     W25Q128_ChipDeselect(w25);
 
     return W25Q128_SUCCESS;
@@ -99,19 +100,111 @@ W25Q128_StatusTypeDef W25Q128_FastRead(W25Q128_TypeDef *w25,
                                         uint32_t size,
                                         uint8_t *r_data)
 {
-uint8_t t_data[5];
-uint32_t mem_addr = (start_page * 256) + offset;
-
-t_data[0] = INST_FAST_READ;
-t_data[1] = (mem_addr >> 16) & 0xFF; // MSB of 24-bit memory address
-t_data[2] = (mem_addr >> 8) & 0xFF;
-t_data[3] = (mem_addr) & 0xFF;       // LSB of 24-bit memory address
-t_data[4] = 0x00;
-
-W25Q128_ChipSelect(w25);
-W25Q128_SPIWrite(w25, t_data, sizeof(t_data), W25Q128_SPI_TIMEOUT);
-W25Q128_SPIRead(w25, r_data, size, W25Q128_SPI_TIMEOUT);
-W25Q128_ChipDeselect(w25);
-
-return W25Q128_SUCCESS;
+    uint8_t t_data[5];
+    uint32_t mem_addr = (start_page * 256) + offset;
+    
+    t_data[0] = INST_FAST_READ;
+    t_data[1] = (mem_addr >> 16) & 0xFF; // MSB of 24-bit memory address
+    t_data[2] = (mem_addr >> 8) & 0xFF;
+    t_data[3] = (mem_addr) & 0xFF;       // LSB of 24-bit memory address
+    t_data[4] = 0x00;
+    
+    W25Q128_ChipSelect(w25);
+    W25Q128_SPIWrite(w25, t_data, sizeof(t_data), W25Q128_SPI_TIMEOUT_MS);
+    W25Q128_SPIRead(w25, r_data, size, W25Q128_SPI_TIMEOUT_MS);
+    W25Q128_ChipDeselect(w25);
+    
+    return W25Q128_SUCCESS;
 }
+
+W25Q128_StatusTypeDef W25Q128_WriteEnable(W25Q128_TypeDef *w25)
+{
+    uint8_t t_data = INST_WRITE_ENABLE;
+
+    W25Q128_ChipSelect(w25);
+    W25Q128_SPIWrite(w25, &t_data, sizeof(t_data), W25Q128_SPI_TIMEOUT_MS);
+    W25Q128_ChipDeselect(w25);
+    
+    // TODO: Check if there is some better way to implement this delay...
+    W25Q128_DelayMs(5);
+
+    return W25Q128_SUCCESS;
+}
+
+W25Q128_StatusTypeDef W25Q128_WriteDisable(W25Q128_TypeDef *w25)
+{
+    uint8_t t_data = INST_WRITE_DISABLE;
+
+    W25Q128_ChipSelect(w25);
+    W25Q128_SPIWrite(w25, &t_data, sizeof(t_data), W25Q128_SPI_TIMEOUT_MS);
+    W25Q128_ChipDeselect(w25);
+    
+    // TODO: Check if there is some better way to implement this delay...
+    W25Q128_DelayMs(5);
+
+    return W25Q128_SUCCESS;
+}
+
+W25Q128_StatusTypeDef W25Q128_EraseSector(W25Q128_TypeDef *w25, 
+                                                        uint16_t num_sector)
+{
+    W25Q128_StatusTypeDef status;
+    uint8_t t_data[6];
+
+    // Sector contains 16 pages, page contains 256 bytes.
+    uint32_t mem_addr = num_sector*16*256;
+
+    status = W25Q128_WriteEnable(w25);
+    if (status != W25Q128_SUCCESS)
+        return W25Q128_ERROR;
+    
+    t_data[0] = INST_SECTOR_ERASE_4KB;
+    t_data[1] = (mem_addr >> 16) & 0xFF; // MSB of a 24-bit memory address
+    t_data[2] = (mem_addr >> 8) & 0xFF;
+    t_data[3] = (mem_addr) & 0xFF;       // LSB of a 24-bit memory address
+
+    W25Q128_ChipSelect(w25);
+    W25Q128_SPIWrite(w25, t_data, sizeof(t_data), W25Q128_SPI_TIMEOUT_MS);
+    W25Q128_ChipDeselect(w25);
+
+    // TODO: Check here for BUSY bit in Status Register
+    if (W25Q128_CheckBUSY(w25) == W25Q128_READY)
+    {
+        status = W25Q128_WriteDisable(w25);
+        if (status != W25Q128_SUCCESS)
+            return W25Q128_ERROR;
+    } else {
+        return W25Q128_ERROR;
+    }
+
+    return W25Q128_SUCCESS;
+}
+
+uint8_t W25Q128_ReadStatusRegister(W25Q128_TypeDef *w25)
+{
+    uint8_t t_data = INST_READ_STATUS_REG_1;
+    uint8_t status_val = 0;
+
+    W25Q128_ChipSelect(w25);
+    W25Q128_SPIWrite(w25, &t_data, sizeof(uint8_t), W25Q128_SPI_TIMEOUT_MS);
+    W25Q128_SPIRead(w25, &status_val, sizeof(uint8_t), W25Q128_SPI_TIMEOUT_MS);
+    W25Q128_ChipDeselect(w25);
+
+    return status_val;
+}
+
+W25Q128_StatusTypeDef W25Q128_CheckBUSY(W25Q128_TypeDef *w25)
+{
+    uint32_t current_time = HAL_GetTick();
+    while(W25Q128_ReadStatusRegister(w25) & 0x01)
+    {
+        if ((HAL_GetTick() - current_time) > W25Q128_RECOVERY_TIMEOUT_MS)
+        {
+            return W25Q128_ERROR_TIMEOUT;
+        }
+        W25Q128_DelayMs(1);
+    }
+    return W25Q128_READY;
+}
+
+

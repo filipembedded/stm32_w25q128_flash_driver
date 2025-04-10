@@ -68,6 +68,8 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
   uint32_t ID = 0;
+  uint8_t receive_buffer1[20] = {0};
+  uint8_t receive_buffer2[256] = {0}; 
   
   W25Q128_TypeDef w25;
   w25.cs_port = GPIOA;
@@ -105,6 +107,12 @@ int main(void)
   
   W25Q128_Reset(&w25);
   ID = W25Q128_ReadID(&w25, ID_JEDEC);
+
+  W25Q128_Read(&w25, 1, 0, 20, receive_buffer1);
+
+  HAL_Delay(10);
+
+  W25Q128_FastRead(&w25, 2, 255, 1,receive_buffer2);
 
   while (1)
   {
