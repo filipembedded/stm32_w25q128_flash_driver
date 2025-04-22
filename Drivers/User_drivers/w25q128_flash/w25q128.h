@@ -1,6 +1,9 @@
 #ifndef W25Q128_H 
 #define W25Q128_H
 
+#define ERASE_BEFORE_PAGE_WRITE_AUTO 1
+
+
 typedef enum {
     W25Q128_SUCCESS = 0,
     W25Q128_ERROR = 1,

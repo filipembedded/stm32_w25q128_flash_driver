@@ -4,8 +4,8 @@
 #define W25Q128_SPI_TIMEOUT_MS 100
 #define W25Q128_RECOVERY_TIMEOUT_MS 500
 
-/*                       Static functions                                     */
-static uint32_t calculateBytesToWrite(uint32_t size, uint16_t offset);
+/*************************** Static functions *********************************/
+static uint32_t calculate_bytes_to_write(uint32_t size, uint16_t offset);
 
 
 void W25Q128_ChipSelect(W25Q128_TypeDef *w25q128)
@@ -217,6 +217,9 @@ W25Q128_StatusTypeDef W25Q128_WritePage(W25Q128_TypeDef *w25, uint32_t page,
 {
     uint8_t t_data[266];
     uint32_t index = 0;
+
+    // Position of the data - track data in the data pointer
+    uint32_t data_position = 0;
     
     // Starting page number
     uint32_t start_page = page; 
@@ -227,11 +230,21 @@ W25Q128_StatusTypeDef W25Q128_WritePage(W25Q128_TypeDef *w25, uint32_t page,
     // Number of pages to be written
     uint32_t num_pages = end_page - start_page + 1;
 
+#if ERASE_BEFORE_PAGE_WRITE_AUTO
+    uint16_t start_sector = start_page/16;
+    uint16_t end_sector = end_page/16;
+    uint16_t num_sectors = end_sector - start_sector + 1;
+    for (int i = 0; i < num_sectors; i++)
+    {
+        W25Q128_EraseSector(w25, start_sector++);
+    }
+#endif
+
     // Writting the data
     for (uint32_t i = 0; i < num_pages; i++)
     {
         uint32_t mem_addr = (start_page * 256) + offset;
-        uint16_t bytes_remaining = calculateBytesToWrite(data_size, offset); 
+        uint16_t bytes_remaining = calculate_bytes_to_write(data_size, offset); 
         
         W25Q128_WriteEnable(w25);
 
@@ -242,14 +255,31 @@ W25Q128_StatusTypeDef W25Q128_WritePage(W25Q128_TypeDef *w25, uint32_t page,
 
         index = 4;
 
-        // NOTE: Continue here ...
-    
+        uint16_t bytes_to_send = bytes_remaining + index;
+
+        for (int i = 0; i < bytes_remaining; i++)
+        {
+            t_data[index++] = data[i + data_position];
+        }
+
+        W25Q128_ChipSelect(w25);
+
+        W25Q128_SPIWrite(w25, t_data, bytes_to_send, W25Q128_SPI_TIMEOUT_MS);
+
+        W25Q128_ChipDeselect(w25);
+        
+        start_page++;
+        offset = 0;
+        data_size = data_size - bytes_remaining;
+        data_position = data_position + bytes_remaining;
+
+        W25Q128_DelayMs(5);
+        W25Q128_WriteDisable(w25);
     }
-    
 }
 
-/*                                   Static functions                         */
-static uint32_t calculateBytesToWrite(uint32_t size, uint16_t offset)
+/*************************** Static functions *********************************/
+static uint32_t calculate_bytes_to_write(uint32_t size, uint16_t offset)
 {
     if ((size + offset) < 256)
         return size; 
