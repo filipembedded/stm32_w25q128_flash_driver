@@ -4,6 +4,10 @@
 #define W25Q128_SPI_TIMEOUT_MS 100
 #define W25Q128_RECOVERY_TIMEOUT_MS 500
 
+/*                       Static functions                                     */
+static uint32_t calculateBytesToWrite(uint32_t size, uint16_t offset);
+
+
 void W25Q128_ChipSelect(W25Q128_TypeDef *w25q128)
 {
     HAL_GPIO_WritePin(w25q128->cs_port, w25q128->cs_pin, GPIO_PIN_RESET);
@@ -207,4 +211,48 @@ W25Q128_StatusTypeDef W25Q128_CheckBUSY(W25Q128_TypeDef *w25)
     return W25Q128_READY;
 }
 
+W25Q128_StatusTypeDef W25Q128_WritePage(W25Q128_TypeDef *w25, uint32_t page, 
+                                        uint16_t offset, uint32_t data_size, 
+                                        uint8_t *data)
+{
+    uint8_t t_data[266];
+    uint32_t index = 0;
+    
+    // Starting page number
+    uint32_t start_page = page; 
+    
+    // Ending page number
+    uint32_t end_page = start_page + ((data_size + offset - 1)/256); 
 
+    // Number of pages to be written
+    uint32_t num_pages = end_page - start_page + 1;
+
+    // Writting the data
+    for (uint32_t i = 0; i < num_pages; i++)
+    {
+        uint32_t mem_addr = (start_page * 256) + offset;
+        uint16_t bytes_remaining = calculateBytesToWrite(data_size, offset); 
+        
+        W25Q128_WriteEnable(w25);
+
+        t_data[0] = INST_PAGE_PROGRAM;
+        t_data[1] = (mem_addr >> 16) & 0xFF; 
+        t_data[2] = (mem_addr >> 8) & 0xFF;
+        t_data[3] = (mem_addr) & 0xFF;
+
+        index = 4;
+
+        // NOTE: Continue here ...
+    
+    }
+    
+}
+
+/*                                   Static functions                         */
+static uint32_t calculateBytesToWrite(uint32_t size, uint16_t offset)
+{
+    if ((size + offset) < 256)
+        return size; 
+    else 
+        return (256 - offset);
+}
