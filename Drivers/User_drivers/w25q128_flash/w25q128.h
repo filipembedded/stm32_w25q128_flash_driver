@@ -1,7 +1,7 @@
 #ifndef W25Q128_H 
 #define W25Q128_H
 
-#define ERASE_BEFORE_PAGE_WRITE_AUTO 1
+#define ERASE_BEFORE_PAGE_WRITE_AUTO 0
 
 
 typedef enum {
@@ -108,6 +108,10 @@ W25Q128_StatusTypeDef W25Q128_EraseSector(W25Q128_TypeDef *w25,
 uint8_t W25Q128_ReadStatusRegister(W25Q128_TypeDef *w25);
 
 W25Q128_StatusTypeDef W25Q128_CheckBUSY(W25Q128_TypeDef *w25);
+
+W25Q128_StatusTypeDef W25Q128_WritePage(W25Q128_TypeDef *w25, uint32_t page, 
+                                        uint16_t offset, uint32_t data_size, 
+                                        uint8_t *data);
 
 
 #endif 

@@ -153,7 +153,7 @@ W25Q128_StatusTypeDef W25Q128_EraseSector(W25Q128_TypeDef *w25,
                                                         uint16_t num_sector)
 {
     W25Q128_StatusTypeDef status;
-    uint8_t t_data[6];
+    uint8_t t_data[4];
 
     // Sector contains 16 pages, page contains 256 bytes.
     uint32_t mem_addr = num_sector*16*256;

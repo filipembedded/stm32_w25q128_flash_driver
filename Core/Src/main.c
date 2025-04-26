@@ -68,7 +68,7 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
   uint32_t ID = 0;
-  uint8_t receive_buffer1[20] = {0};
+  uint8_t receive_buffer1[64] = {0};
   uint8_t receive_buffer2[256] = {0}; 
   
   W25Q128_TypeDef w25;
@@ -104,15 +104,20 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint8_t tx_data[] = "abcdefgh123456789!";
   
   W25Q128_Reset(&w25);
   ID = W25Q128_ReadID(&w25, ID_JEDEC);
 
-  W25Q128_Read(&w25, 1, 0, 20, receive_buffer1);
+  W25Q128_Read(&w25, 0, 0, 30, receive_buffer1);
 
-  HAL_Delay(10);
+  W25Q128_EraseSector(&w25, 0);
 
-  W25Q128_FastRead(&w25, 2, 255, 1,receive_buffer2);
+  W25Q128_Read(&w25, 0, 0, 30, receive_buffer1);
+
+  W25Q128_WritePage(&w25, 0, 0, sizeof(tx_data), tx_data);
+
+  W25Q128_Read(&w25, 0, 0, 30, receive_buffer1);
 
   while (1)
   {
